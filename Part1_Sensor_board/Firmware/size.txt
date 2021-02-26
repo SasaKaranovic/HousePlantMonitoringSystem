@@ -1,0 +1,62 @@
+Size
+https://mcuoneclipse.com/2013/04/14/text-data-and-bss-code-and-data-size-explained/
+
+
+The ‘bss’ contains all the uninitalized data.
+💡 bss (or .bss, or BSS) is the abbreviation for ‘Block Started by Symbol’ by an old assembler (see this link).
+
+The ‘dec’ (as a decimal number) is the sum of text, data and bss:
+
+‘data’ is used for initialized data. This is best explained with the following (global/extern) variable:
+
+
+‘text’ is what ends up in FLASH memory. I can show this with adding
+
+
+
+
+
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  12808     120    1216   14144    3740 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+
+
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  11788     120    1216   13124    3344 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+
+
+std libs
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  11788     120    1216   13124    3344 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+
+
+--- tinyprintf - logger 32b buffer --
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  10876      20    1188   12084    2f34 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+
+
+--- tinyprintf - logger 64b buffer - [main] ---
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  10972      20    1220   12212    2fb4 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+
+--- tinyprintf - logger 64b buffer - [main, adc] ---
+arm-none-eabi-size build/PlantSensorL011.elf
+   text    data     bss     dec     hex filename
+  11596      20    1220   12836    3224 build/PlantSensorL011.elf
+arm-none-eabi-objcopy -O ihex build/PlantSensorL011.elf build/PlantSensorL011.hex
+arm-none-eabi-objcopy -O binary -S build/PlantSensorL011.elf build/PlantSensorL011.bin
+

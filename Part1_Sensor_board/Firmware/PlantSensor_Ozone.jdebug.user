@@ -1,0 +1,34 @@
+
+Breakpoint=main.c:141, State=BP_STATE_DISABLED
+OpenDocument="stm32l0xx_hal.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c", Line=288
+OpenDocument="stm32l0xx_hal_i2c_ex.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_i2c_ex.c", Line=83
+OpenDocument="core_cm0plus.h", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Drivers/CMSIS/Include/core_cm0plus.h", Line=773
+OpenDocument="startup_stm32l011xx.s", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/startup_stm32l011xx.s", Line=45
+OpenDocument="stm32l0xx_it.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Application/stm32l0xx_it.c", Line=12
+OpenDocument="i2c.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Application/i2c.c", Line=102
+OpenDocument="i2c.h", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Application/i2c.h", Line=0
+OpenDocument="stm32l0xx_hal_i2c.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_i2c.c", Line=6371
+OpenDocument="main.c", FilePath="c:/Users/Sasa/Desktop/git/DIY_PlantSensor/STM32L011/Application/main.c", Line=0
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=2, w=750, h=158, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=2, w=601, h=190, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=1, w=750, h=545, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=0, w=601, h=293, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VectorCatchIndexMask=0
+OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=2054, h=173, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, EditorAddress=0x20000724
+OpenWindow="Global Data", DockArea=RIGHT, x=0, y=0, w=750, h=432, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Watched Data 1", DockArea=LEFT, x=0, y=3, w=601, h=250, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=1, w=601, h=401, FilterBarShown=1, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=505, h=173, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+TableHeader="Global Data", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Location";"Size";"Type";"Scope"], ColWidths=[143;185;100;63;135;170]
+TableHeader="Vector Catches", SortCol="None", SortOrder="ASCENDING", VisibleCols=["";"Vector Catch";"Description"], ColWidths=[50;300;500]
+TableHeader="Break & Tracepoints", SortCol="Type", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;56;158;332]
+TableHeader="Functions", SortCol="Name", SortOrder="DESCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[267;77;49;57;188]
+TableHeader="Source Files", SortCol="File", SortOrder="ASCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[210;62;49;57;686]
+TableHeader="Power Sampling", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[136;161;436]
+TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[100;100;100;301]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;376]
+WatchedExpression="nBuffPos", RefreshRate=1, Window=Watched Data 1
+WatchedExpression="pI2CBuff", RefreshRate=1, Window=Watched Data 1
+WatchedExpression="nBufferLen", RefreshRate=1, Window=Watched Data 1
