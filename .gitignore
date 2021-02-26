@@ -1,0 +1,19 @@
+*.d
+*.o
+*.bin
+*.hex
+*.elf
+*.bat
+dist
+build
+__pycache__
+*.SchDocPreview
+*.PcbDocPreview
+*.PcbDoc.htm
+History
+**/__Previews
+**/Project Logs for*
+**/Project Outputs for *
+*.html
+*.htm
+*.ldb
