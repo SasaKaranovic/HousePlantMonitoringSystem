@@ -1,0 +1,35 @@
+Altium Designer Pick and Place Locations
+C:\Users\Sasa\Desktop\git\DIY_PlantSystem_public\Part1_Sensor_board\Hardware\Project Outputs for PlantSensor_V02\Pick Place\Pick Place for PlantSensor_V02_PCB.txt
+
+========================================================================================================================
+File Design Information:
+
+Date:       02-03-21
+Time:       00:37
+Revision:   dcda38bcac657ca60e2c8900b46b2d3ec5c8f3b4
+Variant:    No variations
+Units used: mil
+
+Designator Comment      Layer       Footprint              Center-X(mil) Center-Y(mil) Rotation Description                        
+C5         Cap          BottomLayer 0603_-_CAP             145.000mil    -420.000mil   270      "CAP CER 0.1UF 50V X7R 0603"       
+C1         Cap          BottomLayer 0603_-_CAP             690.000mil    -420.000mil   270      "CAP CER 0.1UF 50V X7R 0603"       
+U1         STM32L011K4  TopLayer    TQFP80P900X900X160-32N 433.071mil    -400.000mil   90       "IC MCU 32BIT 16KB FLASH 32LQFP"   
+R6         Res          TopLayer    RADIAL0.1_-_SMT        435.000mil    -60.000mil    180      "PHOTOCELL CDS 400OHM TO-18"       
+R4         Res          TopLayer    0603                   690.000mil    -480.000mil   270      "RES SMD 1K OHM 1% 1/10W 0603"     
+R2         Res          BottomLayer 0603                   290.000mil    -45.000mil    180      "RES SMD 10K OHM 1% 1/10W 0603"    
+P3         "Header 4"   TopLayer    Header_4x1             75.000mil     -300.000mil   90       "CONN HEADER VERT 4POS 2.54MM"     
+P1         "Header 4"   TopLayer    Header_4x1             790.000mil    -300.000mil   90       "CONN HEADER VERT 4POS 2.54MM"     
+C2         Cap          TopLayer    0603_-_CAP             175.000mil    -420.000mil   270      "CAP CER 0.1UF 50V X7R 0603"       
+C7         Cap          BottomLayer 0603_-_CAP             605.000mil    -375.000mil   270      "CAP CER 0.1UF 50V X7R 0603"       
+R9         Res          BottomLayer 0603                   555.000mil    -375.000mil   270      "RES SMD 4.7K OHM 1% 1/10W 0603"   
+R10        Res          BottomLayer 0603                   555.000mil    -480.000mil   90       "RES SMD 4.7K OHM 1% 1/10W 0603"   
+R11        Res          BottomLayer 0603                   605.000mil    -480.000mil   90       "RES SMD 4.7K OHM 1% 1/10W 0603"   
+R7         Res          BottomLayer 0603                   290.000mil    -165.000mil   360      "RES SMD 10K OHM 1% 1/10W 0603"    
+U2         MCP9800A0T   BottomLayer SOT95P270X145-5N       440.000mil    -425.000mil   270      "SENSOR DIGITAL -55C-125C SOT23-5" 
+C6         Cap          TopLayer    0603_-_CAP             535.000mil    -690.000mil   90       "CAP CER 0.1UF 50V X7R 0603"       
+D1         1N4148       TopLayer    SOD123                 410.000mil    -815.000mil   180      "DIODE GEN PURP 100V 300MA SOD123" 
+P2         "Header 3X2" BottomLayer HDR2X3                 125.000mil    -735.000mil   90       "CONN HEADER VERT 6POS 2.54MM"     
+R1         Res          TopLayer    0603                   355.000mil    -660.000mil   180      "RES SMD 4.7K OHM 1% 1/10W 0603"   
+R3         Res          BottomLayer 0603                   290.000mil    -105.000mil   180      Resistor                           
+R5         Res          TopLayer    0603                   480.000mil    -690.000mil   270      "RES SMD 0 OHM JUMPER 1/10W 0603"  
+R8         Res          TopLayer    0603                   355.000mil    -730.000mil   0        "RES SMD 1M OHM 5% 1/10W 0603"     
