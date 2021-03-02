@@ -1,9 +1,9 @@
 # DIY House Plants Watering System
 
 
-
-
 ## Part 1: Sensor board
+
+![DIY House Plants Watering System - Part 1: Sensor Board](http://i3.ytimg.com/vi/ucjUwo17kw4/maxresdefault.jpg)
 
 Watch: [DIY House Plants Watering System // Part 1: Sensor Board](https://youtu.be/ucjUwo17kw4)
 
