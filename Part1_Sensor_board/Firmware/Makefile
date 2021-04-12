@@ -210,6 +210,9 @@ flash:
 jlink:
 	 JLink.exe -if swd flash.jlink
 
+reset:
+	 JLink.exe -if swd reset.jlink
+
 size:
 	py -3 size.py -p 16KB -r 2KB -f build/$(TARGET).elf
 

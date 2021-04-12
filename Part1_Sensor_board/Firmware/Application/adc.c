@@ -5,8 +5,6 @@ ADC_HandleTypeDef hadc;
 /* ADC init function */
 void MX_ADC_Init(void)
 {
-	ADC_ChannelConfTypeDef sConfig = {0};
-
 	/** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
 	*/
 	hadc.Instance = ADC1;

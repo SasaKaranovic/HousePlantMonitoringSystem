@@ -24,7 +24,16 @@ typedef enum
 	DATATYPE_SINGLE_VALUE,
 	DATATYPE_KEY_VALUE_PAIR,
 	DATATYPE_LAST
-} plant_datatype_t;
+} plant_dataType_t;
+
+
+typedef enum 
+{
+	DEVICETYPE_FIRST = 0x00,
+	DEVICETYPE_SENSOR_V1,
+	DEVICETYPE_SOLENOID_V1,
+	DEVICETYPE_LAST
+} plant_deviceType_t;
 
 bool PlanSystem_ParseBuffer(uint8_t *pBuffer, uint8_t nBufferLen, uint8_t *cmd, uint8_t *dataType, uint8_t *dataLength);
 

@@ -5,7 +5,6 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-
 /******************************************************************************/
 /*           Cortex-M0+ Processor Interruption and Exception Handlers          */
 /******************************************************************************/
@@ -60,29 +59,8 @@ void SysTick_Handler(void)
   */
 void I2C1_IRQHandler(void)
 {
-  if (hi2c1.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
     HAL_I2C_ER_IRQHandler(&hi2c1);
-
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_TXE);     // Transmit data register empty
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_ADDR);    // Address matched (slave mode)
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_AF);      // Acknowledge failure received flag
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_STOPF);   // STOP detection flag
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_BERR);    // Bus error
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_ARLO);    // Arbitration lost
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_OVR);     // Overrun/Underrun
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_PECERR);  // PEC error in reception
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_TIMEOUT); // Timeout or Tlow detection flag
-    __HAL_I2C_CLEAR_FLAG(&hi2c1, I2C_FLAG_ALERT);   // SMBus alert
-
-  } 
-  else {
     HAL_I2C_EV_IRQHandler(&hi2c1);
-    // I2C_ReloadIT();
-  }
-
-  HAL_NVIC_ClearPendingIRQ(I2C1_IRQn);
-
-
 }
 
 

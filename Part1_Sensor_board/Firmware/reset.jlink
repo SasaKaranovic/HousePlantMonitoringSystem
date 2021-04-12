@@ -1,0 +1,5 @@
+device stm32l011k4
+tif swd
+speed 4000
+rnh
+exit
