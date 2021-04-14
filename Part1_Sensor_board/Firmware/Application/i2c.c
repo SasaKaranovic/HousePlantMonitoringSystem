@@ -8,7 +8,7 @@
 #include "logger.h"
 
 
-#define I2C_ADDRESS        	(0x1F << 1)
+#define I2C_ADDRESS        	(0x10 << 1)
 #define I2C_TIMING    		0x20602938 /* 100 kHz with analog Filter ON, Rise Time 400ns, Fall Time 100ns */ 
 #define I2C_BUFF_LEN  		30
 

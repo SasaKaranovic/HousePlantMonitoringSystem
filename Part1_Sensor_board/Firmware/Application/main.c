@@ -103,9 +103,10 @@ static void PlantSystem_ProcessRequest(void)
             {
                 pTXBuff[0]  = CMD_GET_TEMPERATURE;
                 pTXBuff[1]  = DATATYPE_SINGLE_VALUE;
-                pTXBuff[2]  = 2;
-                Sensors_GetTemperatureReading(&pTXBuff[3], &pTXBuff[4]);
-                nTXBufferLen = 5;
+                pTXBuff[2]  = 0;
+                pTXBuff[3]  = 2;
+                Sensors_GetTemperatureReading(&pTXBuff[4], &pTXBuff[5]);
+                nTXBufferLen = 6;
                 Logger_INFO("T");
             }
             break;
@@ -115,9 +116,10 @@ static void PlantSystem_ProcessRequest(void)
             {
                 pTXBuff[0]  = CMD_GET_SOILMOISTURE;
                 pTXBuff[1]  = DATATYPE_SINGLE_VALUE;
-                pTXBuff[2]  = 4;
-                Sensors_GetSoilMoistureReading(&pTXBuff[3], &pTXBuff[4], &pTXBuff[5], &pTXBuff[6]);
-                nTXBufferLen = 7;
+                pTXBuff[2]  = 0;
+                pTXBuff[3]  = 4;
+                Sensors_GetSoilMoistureReading(&pTXBuff[4], &pTXBuff[5], &pTXBuff[6], &pTXBuff[7]);
+                nTXBufferLen = 8;
                 Logger_INFO("M");
             }
             break;
@@ -127,9 +129,10 @@ static void PlantSystem_ProcessRequest(void)
             {
                 pTXBuff[0]  = CMD_GET_AMBIENTLIGHT;
                 pTXBuff[1]  = DATATYPE_SINGLE_VALUE;
-                pTXBuff[2]  = 4;
-                Sensors_GetAmbientLightReading(&pTXBuff[3], &pTXBuff[4], &pTXBuff[5], &pTXBuff[6]);
-                nTXBufferLen = 7;
+                pTXBuff[2]  = 0;
+                pTXBuff[3]  = 4;
+                Sensors_GetAmbientLightReading(&pTXBuff[4], &pTXBuff[5], &pTXBuff[6], &pTXBuff[7]);
+                nTXBufferLen = 8;
                 Logger_INFO("A");
             }
             break;
