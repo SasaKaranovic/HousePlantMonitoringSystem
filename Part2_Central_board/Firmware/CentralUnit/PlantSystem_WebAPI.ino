@@ -59,7 +59,7 @@ bool PlantSystem_WAPI_GetDevices(char *pBuff, uint32_t nMaxLen)
 		}
 
 
-		len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "{\"address\":\"0x%02X\",\"type\":\"%s\"},",
+		len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "{\"address\":\"%d\",\"type\":\"%s\"},",
 							gDevicesOnBus[i].i2cAddress, 
 							pStrDevTyep);
 		if(len>0)
@@ -112,7 +112,7 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 
 
 	// Start JSON string
-	len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "{\"count\":%d,\"sensors\":[",
+	len = snprintf(&pBuff[currentPos], nMaxLen, "{\"count\":%d,\"sensors\":[",
 																gnSensorsOnBusCnt);
 	if(len<0)
 	{
@@ -121,24 +121,32 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 	}
 	else
 	{
-		currentPos += len;
+		currentPos 	+= len;
+		nMaxLen 	-= len;
 	}
 
 	// Construct response based on devices currently registered on the bus
 	for(uint8_t i=0; i<gnSensorsOnBusCnt; i++)
 	{
-		len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "{\"address\":\"0x%02X\",\"T\":%.2f,\"M\":%d,\"A\":%d},",
+		len = snprintf(&pBuff[currentPos], nMaxLen, "{\"address\":\"%d\",\"T\":%.2f,\"M\":%d,\"A\":%d},",
 									gSensorsOnBus[i].i2cAddress, 
 									gSensorsOnBus[i].temperature, 
 									gSensorsOnBus[i].soilMoisture,
 									gSensorsOnBus[i].ambienLight);
 		if(len>0)
 		{
-			currentPos += len;
+			currentPos 	+= len;
+			nMaxLen 	-= len;
 		}
 		else
 		{
-			Serial.println("Len issue");
+			Serial.print("snprintf ret: ");
+			Serial.println(len, DEC);		
+
+			Serial.print("nMaxLen: ");
+			Serial.println(len, DEC);
+
+			Serial.print("currentPos :");
 			Serial.println(len, DEC);
 			return false;
 		}
@@ -146,14 +154,22 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 
 
 	// Close JSON string
-	len = snprintf(&pBuff[currentPos-1], (nMaxLen-currentPos), "]}");
+	len = snprintf(&pBuff[currentPos-1], nMaxLen, "]}");
 	if(len<0)
 	{
 		Serial.println("Buffer too short");
+		Serial.print("snprintf ret: ");
+		Serial.println(len, DEC);		
+
+		Serial.print("nMaxLen: ");
+		Serial.println(len, DEC);
+
+		Serial.print("currentPos :");
+		Serial.println(len, DEC);
 		return false;
 	}
 
-	if(len>0 && currentPos <nMaxLen)
+	if(len>0)
 	{
 		#if 0
 		Serial.println("Printing pBuff");
@@ -202,7 +218,7 @@ bool PlantSystem_WAPI_SolenoidList(char *pBuff, uint32_t nMaxLen)
 	// Construct response based on devices currently registered on the bus
 	for(uint8_t i=0; i<gnSolenoidsOnBusCnt; i++)
 	{
-		len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "\"0x%02X\",",
+		len = snprintf(&pBuff[currentPos], (nMaxLen-currentPos), "\"%d\",",
 									gSolenoidsOnBus[i].i2cAddress);
 
 		if(len>0)

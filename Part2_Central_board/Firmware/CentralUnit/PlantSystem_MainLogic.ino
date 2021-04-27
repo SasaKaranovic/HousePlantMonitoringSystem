@@ -35,18 +35,43 @@ uint8_t gnSensorsOnBusCnt = 0;
 I2C_Solenoid_TypeDef gSolenoidsOnBus[20] = { {.i2cAddress=0, .lastState=0} };
 uint8_t gnSolenoidsOnBusCnt = 0;
 
-// Periods
-#define PERIOD_RESCAN_BUS		24*3600*1000	// Every 24h
-#define PERIOD_RELOAD_SENSORS	15*1000			// Every 5sec
+// I2C bus config
+#define I2C_ADDRESS_LIMIT_LOWER		0x08
+#define I2C_ADDRESS_LIMIT_UPPER		0x7F
 
+// Plant watering definitions
+#define WATERING_VOLUME_MINIMUM		10
+#define WATERING_VOLUME_MAXIMUM		550
+#define WATERING_FLOW_EDGES_PER_ML	4
+
+// PlantSystem_tick periods
+#define PERIOD_RESCAN_BUS			24*3600*1000	// Every 24h
+#define PERIOD_RELOAD_SENSORS		15*1000			// Every 5sec
+#define PERIOD_FLOW_RATE			2*1000			// Every 2sec
+
+// PlantSystem_tick global variables
 uint32_t nPeriod_Rescanbus=0;
 uint32_t nPeriod_ReloadSensors=0;
+uint32_t nPeriod_FlowRate=0;
+
+// Watering global variables
+bool bPrimeSystem_requestPending=false;
+bool bWatering_requestPending=false;
+bool bWatering_inProgress=false;
+bool bCloseValvesOnPowerUp=false;
+uint32_t nWatering_volume=0;
+uint8_t nWatering_i2cAddress=0;
+uint32_t nTimeout = 0;
+
 
 void PlantSystem_tick(void)
 {
+	esp_task_wdt_reset();
+
 	// -- Rescan I2C bus
 	if(nPeriod_Rescanbus <= millis())
 	{
+		esp_task_wdt_reset();
 		PlantSystem_ScanBus();
 		#if 1
 		PlantSystem_debugShowDevicesOnBus();
@@ -60,14 +85,106 @@ void PlantSystem_tick(void)
 		PlantSystem_UpdateSensors();
 		nPeriod_ReloadSensors = millis() + PERIOD_RELOAD_SENSORS;
 	}
-	
+
+
+	// -- Close all solenoids on boot
+	if(bCloseValvesOnPowerUp == false)
+	{
+		// Turn OFF all solenoids
+		delay(500);
+		esp_task_wdt_reset();
+		Serial.println("De-energizing ALL solenoids");
+		for(uint8_t i=0; i<gnSolenoidsOnBusCnt; i++)
+		{
+			if (PlantSystem_SetSolenoidState(gSolenoidsOnBus[i].i2cAddress, false) == true)
+			{
+				Serial.print("Closed solenoid 0x");
+				Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+			}
+			else
+			{
+				Serial.print("Failed to close solenoid 0x");
+				Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+			}
+			delay(500);
+		}
+		bCloseValvesOnPowerUp = true;
+	}
+
+	#if 0
+	// -- Flow sensor debug
+	if(nPeriod_FlowRate <= millis())
+	{
+		Serial.print("nFlowSensorCount: ");
+		Serial.println(nFlowSensorCount, DEC);
+		nPeriod_FlowRate = millis() + PERIOD_FLOW_RATE;
+	}
+	#endif
+
+	// -- Process watering request
+	if(bWatering_requestPending || bWatering_inProgress)
+	{
+		Serial.println("bWatering_requestPending | bWatering_inProgress");
+		// Transition to in progress
+		bWatering_inProgress = true;
+		bWatering_requestPending = false;
+
+		// Note: Solenoid address and volume must have been validated
+		Serial.println("Turning pump ON");
+		digitalWrite(WATER_PUMP_EN_PIN, HIGH);
+		delay(200);
+		Serial.println("Energizing solenoid");
+		if (PlantSystem_SetSolenoidState(nWatering_i2cAddress, true) != true)
+		{
+			bWatering_requestPending = false;
+			bWatering_inProgress = false;
+			digitalWrite(WATER_PUMP_EN_PIN, LOW);
+			Serial.println("Turning pump OFF");
+			Serial.println("Failed to open solenoid. Aborting...");
+			return;
+		}
+
+		esp_task_wdt_reset();
+		nTimeout = millis() + 10000;
+		while(nFlowSensorCount < (WATERING_FLOW_EDGES_PER_ML*nWatering_volume))
+		{
+			if(millis() > nTimeout)
+			{
+				break;
+			}
+		}
+		esp_task_wdt_reset();
+
+		Serial.println("De-Energizing solenoid");
+		PlantSystem_SetSolenoidState(nWatering_i2cAddress, false);
+		delay(200);
+		digitalWrite(WATER_PUMP_EN_PIN, LOW);
+		Serial.println("Turning pump OFF");
+
+		// Store last flow data and prepare for new request
+		nFlowSensorCount_last = nFlowSensorCount;
+		nFlowSensorCount = 0;
+
+		// Reset request
+		bWatering_inProgress = false;
+		bWatering_requestPending = false;
+	}
+
+
+	// -- Process prime system with water request
+	if(bPrimeSystem_requestPending)
+	{
+		esp_task_wdt_reset();
+		PlantSystem_PrimeSystemWithWater();
+		bPrimeSystem_requestPending = false;
+	}
 }
 
 
 void PlantSystem_ScanBus(void)
 {
 	Serial.println ("Scanning I2C bus...");
-	for (uint8_t i = 8; i< 127; i++)
+	for (uint8_t i=I2C_ADDRESS_LIMIT_LOWER; i<I2C_ADDRESS_LIMIT_UPPER; i++)
 	{
 		Wire.beginTransmission (i);          // Begin I2C transmission Address (i)
 		if (Wire.endTransmission () == 0)  	// Receive 0 = success (ACK response) 
@@ -76,6 +193,7 @@ void PlantSystem_ScanBus(void)
 			// gDevicesOnBusCount++;
 		}
 	}
+	esp_task_wdt_reset();
 	Serial.print ("Found ");      
 	Serial.print (gDevicesOnBusCount, DEC);        // numbers of devices
 	Serial.println (" device(s).");
@@ -83,6 +201,8 @@ void PlantSystem_ScanBus(void)
 	for(uint8_t i=0; i<gDevicesOnBusCount; i++)
 	{
 		PlantSystem_getDeviceInfo(i);
+		delay(300);
+		esp_task_wdt_reset();
 	}
 }
 
@@ -197,11 +317,11 @@ void PlantSystem_getDeviceInfo(uint8_t devID)
 // -- 
 bool PlantSystem_SetSolenoidState(uint32_t I2CAddress, bool energized)
 {
-	if(I2CAddress < 0x08 || I2CAddress > 0x7F )
+	if(I2CAddress<I2C_ADDRESS_LIMIT_LOWER || I2CAddress>I2C_ADDRESS_LIMIT_UPPER )
 	{
 		return false;
 	}
-	
+
 	uint8_t txBuffer[5];
 	uint8_t requestedState = (energized ? 1 : 0);
 
@@ -214,7 +334,7 @@ bool PlantSystem_SetSolenoidState(uint32_t I2CAddress, bool energized)
 	I2C_SendBuffer(I2CAddress, txBuffer, 5);
 
 	// Wait 100 ms
-	delay(100);
+	delay(200);
 
 	// Send read back value request
 	txBuffer[0] = CMD_GET_SOLENOID_STATE;
@@ -224,18 +344,26 @@ bool PlantSystem_SetSolenoidState(uint32_t I2CAddress, bool energized)
 	I2C_SendBuffer(I2CAddress, txBuffer, 4);
 	
 	// Wait 100 ms
-	delay(100);
+	delay(200);
 
 	// Read new solenoid state
-	uint8_t newState = 0;
-	I2C_ReadFrom(I2CAddress, 10, &newState, PLANTSYSTEM_MIN_HEADER_LENGHT+1, 1);
+	uint8_t retData = 0;
+	I2C_ReadFrom(I2CAddress, 10, &retData, PLANTSYSTEM_MIN_HEADER_LENGHT+1, 1);
 
-	if(requestedState == newState)
+	if(requestedState == retData)
 	{
+		Serial.print("New state == Requested state 0x");
+		Serial.print(retData, DEC);
+		Serial.print("==0x");
+		Serial.println(requestedState, DEC);
 		return true;
 	}
 	else
 	{
+		Serial.print("New state != Requested state 0x");
+		Serial.print(retData, DEC);
+		Serial.print("!=0x");
+		Serial.println(requestedState, DEC);
 		return false;
 	}
 
@@ -366,10 +494,26 @@ bool I2C_ReadFrom(uint8_t address, uint8_t nLen, uint8_t *pData, uint8_t nPos, u
 		return false;
 	}
 
+	// Prepare variables
 	uint8_t rxBuffer[20] = {0};
+	uint32_t timeout = millis() + 2000;
+	bool bReady = false;
 
 	Wire.requestFrom(address, nLen, true);
-	while(Wire.available() == 0);
+	while(millis() <= timeout)
+	{
+		if(Wire.available())
+		{
+			bReady = true;
+			break;
+		}
+	}
+
+	if(bReady == false)
+	{
+		return false;
+	}
+
 	for(uint8_t i=0; i<nLen; i++)
 	{
 		rxBuffer[i] = Wire.read();
@@ -399,4 +543,123 @@ bool I2C_ReadFrom(uint8_t address, uint8_t nLen, uint8_t *pData, uint8_t nPos, u
 	return true;
 }
 
+
+
+// -- Request opening of solenoid at address `solenoidAddress` 
+// 	  and pumping out (approximately) `n_volume_in_mL` mL of fluid 
+bool PlantSystem_WaterPlant(uint8_t solenoidAddress, uint32_t n_volume_in_mL)
+{
+	// Valid I2C address requested
+	if(solenoidAddress<I2C_ADDRESS_LIMIT_LOWER || solenoidAddress>I2C_ADDRESS_LIMIT_UPPER)
+	{
+		Serial.println("Invalid I2C address!");
+		return false;
+	}
+
+	// Valid volume requested
+	if(n_volume_in_mL < WATERING_VOLUME_MINIMUM || n_volume_in_mL > WATERING_VOLUME_MAXIMUM)
+	{
+		Serial.println("Invalid volume requested!");
+		return false;
+	}
+
+	// Check if solenoid with this address is registered on the bus
+	bool bFound = false;
+	for(uint8_t i=0; i<gnSolenoidsOnBusCnt; i++)
+	{
+		if(gSolenoidsOnBus[i].i2cAddress == solenoidAddress)
+		{
+			bFound=true;
+			break;
+		}
+	}
+
+	// Solenoid not found or invalid request
+	if(bFound == false)
+	{
+		Serial.println("Solenoid not found!");
+		return false;
+	}
+
+	// Valid request, add to next tick
+
+	bWatering_requestPending=true;
+	nWatering_volume=n_volume_in_mL;
+	nWatering_i2cAddress=solenoidAddress;
+
+
+	#if 0
+	Serial.println ("Response");
+	for(uint8_t i=0; i<nLen; i++)
+	{
+		Serial.print ("[");
+		Serial.print (i, DEC);
+		Serial.print ("] = 0x");
+		Serial.println (rxBuffer[i], HEX);
+	}
+	#endif
+
+	return true;
+}
+
+void PlantSystem_RequestPrimeSystem(void)
+{
+	bPrimeSystem_requestPending = true;
+}
+
+
+bool PlantSystem_PrimeSystemWithWater(void)
+{
+	// Turn ON Pump
+	Serial.println("Turning pump ON");
+	digitalWrite(WATER_PUMP_EN_PIN, HIGH);
+	delay(1000);
+	
+	// Turn ON all solenoids
+	Serial.println("Energizing ALL solenoids");
+	for(uint8_t i=0; i<gnSolenoidsOnBusCnt; i++)
+	{
+		if (PlantSystem_SetSolenoidState(gSolenoidsOnBus[i].i2cAddress, true) == true)
+		{
+			Serial.print("Openned solenoid 0x");
+			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+		}
+		else
+		{
+			Serial.print("Failed to open solenoid 0x");
+			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+		}
+		delay(500);
+	}
+
+	// Let the water flow for a while
+	delay(5000);
+
+	// Turn OFF all solenoids
+	Serial.println("De-energizing ALL solenoids");
+	for(uint8_t i=0; i<gnSolenoidsOnBusCnt; i++)
+	{
+		if (PlantSystem_SetSolenoidState(gSolenoidsOnBus[i].i2cAddress, false) == true)
+		{
+			Serial.print("Closed solenoid 0x");
+			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+		}
+		else
+		{
+			Serial.print("Failed to close solenoid 0x");
+			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+		}
+		delay(500);
+	}
+
+
+	// Turn OFF pump
+	delay(1000);
+	Serial.println("Turning pump OFF");
+	digitalWrite(WATER_PUMP_EN_PIN, LOW);
+
+	nFlowSensorCount = 0;
+	return true;
+
+}
 

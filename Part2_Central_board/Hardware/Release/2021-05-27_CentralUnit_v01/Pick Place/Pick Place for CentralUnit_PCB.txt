@@ -1,0 +1,47 @@
+Altium Designer Pick and Place Locations
+C:\Users\Sasa\Desktop\git\DIY_PlantSystem_public\Part2_Central_board\Hardware\Project Outputs for CentralUnit\Pick Place\Pick Place for CentralUnit_PCB.txt
+
+========================================================================================================================
+File Design Information:
+
+Date:       27-05-21
+Time:       23:14
+Revision:   Not in VersionControl
+Variant:    No variations
+Units used: mil
+
+Designator Comment         Layer    Footprint                 Center-X(mil) Center-Y(mil) Rotation Description                                                                                                      
+D2         "Diode Schotky" TopLayer 1206_Polarized            2689.213mil   -472.244mil   90       ""                                                                                                               
+P1         691322110005    TopLayer TERMINAL_5POS_90DEG_2PART 1544.213mil   -82.244mil    180      "TERM BLOCK HDR 5POS 90DEG 3.5MM"                                                                                
+P2         691322110002    TopLayer TERMINAL_2POS_90DEG_2PART 312.638mil    -82.284mil    180      "2 Position Terminal Block Header, Male Pins, Shrouded (4 Side) 0.138" (3.50mm) 90°, Right Angle - Through Hole" 
+P3         691322110003    TopLayer TERMINAL_3POS_90DEG_2PART 821.929mil    -82.284mil    180      "TERM BLOCK HDR 3POS 90DEG 3.5MM"                                                                                
+P4         691322110002    TopLayer TERMINAL_2POS_90DEG_2PART 2390.315mil   -82.244mil    180      "2 Position Terminal Block Header, Male Pins, Shrouded (4 Side) 0.138" (3.50mm) 90°, Right Angle - Through Hole" 
+R10        Res             TopLayer 0603_-_HS                 2164.213mil   -1028.740mil  270      Resistor                                                                                                         
+R11        Res             TopLayer 0603_-_HS                 2164.213mil   -1153.740mil  270      Resistor                                                                                                         
+U1         "ESP32 Dev Kit" TopLayer ESP32-DevModule           920.394mil    -1244.991mil  270      ""                                                                                                               
+U2         PCA9517ADP,118  TopLayer MSOP8-3mm                 1434.213mil   -447.284mil   90       "IC REDRIVER I2C 1CH 8TSSOP"                                                                                     
+U3         LM2576-3.3      TopLayer TO263-5                   2449.705mil   -935.788mil   180      "Buck Switching Regulator IC Positive Fixed 3.3V 1 Output 3A TO-263-6, D²Pak (5 Leads + Tab), TO-263BA"          
+C3         Cap             TopLayer 0603_-_CAP_HS             1624.213mil   -272.284mil   0        "CAP CER 0.1UF 50V X7R 0603"                                                                                     
+C4         Cap             TopLayer 0603_-_CAP_HS             1624.213mil   -212.284mil   0        Capacitor                                                                                                        
+C5         Cap             TopLayer 0603_-_CAP_HS             1929.213mil   -272.284mil   180      "CAP CER 0.1UF 50V X7R 0603"                                                                                     
+C6         Cap             TopLayer 0603_-_CAP_HS             1929.213mil   -212.284mil   180      Capacitor                                                                                                        
+C7         Cap             TopLayer 0603_-_CAP_HS             514.213mil    -227.284mil   180      Capacitor                                                                                                        
+C10        Cap             TopLayer 0603_-_CAP_HS             2689.213mil   -637.244mil   180      "CAP CER 0.1UF 50V X7R 0603"                                                                                     
+D1         1N4148          TopLayer SOD123F                   314.213mil    -227.284mil   360      "DIODE GEN PURP 100V 300MA SOD123"                                                                               
+R1         Res             TopLayer 0603_-_HS                 954.213mil    -252.284mil   0        "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R2         Res             TopLayer 0603_-_HS                 819.213mil    -282.284mil   270      "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R3         Res             TopLayer 0603_-_HS                 494.213mil    -492.284mil   90       "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R5         Res             TopLayer 0603_-_HS                 369.213mil    -557.284mil   0        "RES SMD 1M OHM 5% 1/10W 0603"                                                                                   
+R6         Res             TopLayer 0603_-_HS                 1220.000mil   -1605.000mil  90       "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R7         Res             TopLayer 0603_-_HS                 1520.000mil   -1605.000mil  90       "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R8         Res             TopLayer 0603_-_HS                 1294.213mil   -375.787mil   90       "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+R9         Res             TopLayer 0603_-_HS                 1234.213mil   -377.284mil   90       "RES SMD 0 OHM JUMPER 1/10W 0603"                                                                                
+L1         Inductor        TopLayer IND_TH_SMD                2409.213mil   -402.244mil   180      "Shielded - Inductor 200mOhm Nonstandard"                                                                        
+C1         16V             TopLayer Electrolytic_Cap_2.54mm   1659.213mil   -467.284mil   270      "Polarized Capacitor (Axial)"                                                                                    
+C2         16V             TopLayer Electrolytic_Cap_2.54mm   1894.213mil   -467.284mil   270      "Polarized Capacitor (Axial)"                                                                                    
+C8         16V             TopLayer Electrolytic_Cap_2.54mm   2799.213mil   -782.244mil   270      "Polarized Capacitor (Axial)"                                                                                    
+C9         16V             TopLayer Electrolytic_Cap_2.54mm   2074.213mil   -782.244mil   270      "Polarized Capacitor (Axial)"                                                                                    
+P5         "Header 2"      TopLayer Header_2x1                170.000mil    -600.000mil   180      "Header, 2-Pin"                                                                                                  
+P6         "Header 2"      TopLayer Header_2x1                270.000mil    -1905.000mil  360      "Header, 2-Pin"                                                                                                  
+Q1         DMN62D0U-13     TopLayer SOT90P240X100-3N          360.000mil    -425.000mil   180      "MOSFET N-CH 60V 0.38A"                                                                                          
+C11        Cap             TopLayer 0603_-_CAP_HS             1174.213mil   -377.284mil   90       "CAP CER 0.1UF 50V X7R 0603"                                                                                     

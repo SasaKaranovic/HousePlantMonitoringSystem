@@ -1,0 +1,33 @@
+Altium Designer Pick and Place Locations
+C:\Users\Sasa\Desktop\git\DIY_PlantSystem_public\Part2_Actuator_board\Hardware\Project Outputs for SolenoidValveDriver_v01\Pick Place\Pick Place for SolenoidValveDriver_v01_PCB.txt
+
+========================================================================================================================
+File Design Information:
+
+Date:       27-05-21
+Time:       22:55
+Revision:   68dc99a6db214db595c0a2d2ebf8c6593c3e50d0
+Variant:    No variations
+Units used: mil
+
+Designator Comment              Layer    Footprint           Center-X(mil) Center-Y(mil) Rotation Description                        
+C1         Cap                  TopLayer 0603_-_CAP          230.000mil    -125.000mil   180      Capacitor                          
+C2         Cap                  TopLayer 0603_-_CAP          -238.976mil   -640.000mil   360      Capacitor                          
+C3         Cap                  TopLayer 0603_-_CAP          -238.976mil   -575.000mil   360      Capacitor                          
+C4         Cap                  TopLayer 0603_-_CAP          -448.976mil   -410.000mil   180      "CAP CER 0.1UF 50V X7R 0603"       
+C5         Cap                  TopLayer 0603_-_CAP          366.024mil    -405.000mil   0        "CAP CER 0.1UF 50V X7R 0603"       
+C6         Cap                  TopLayer 0603_-_CAP          -448.976mil   -305.000mil   180      "CAP CER 0.1UF 50V X7R 0603"       
+C7         Cap                  TopLayer 0603_-_CAP          366.024mil    -305.000mil   0        "CAP CER 0.1UF 50V X7R 0603"       
+D1         LED                  TopLayer 0603_Diode          305.000mil    -815.000mil   360      "Typical RED GaAs LED"             
+D2         1N4148               TopLayer SOD123              0.000mil      -265.000mil   360      "DIODE GEN PURP 100V 300MA SOD123" 
+P1         "Header 5"           TopLayer Header_5x1          -590.551mil   -505.000mil   270      "Header, 5-Pin"                    
+P2         "Header 5"           TopLayer Header_5x1          590.551mil    -505.000mil   270      "Header, 5-Pin"                    
+P3         "Header 4"           TopLayer Header_4x1          0.000mil      -1015.000mil  360      "Header, 4-Pin"                    
+P4         "Solenoid Connector" TopLayer Header_2x1          0.000mil      -125.000mil   180      "Header, 2-Pin"                    
+Q1         DMN62D0U-13          TopLayer SOT90P240X100-3N    0.000mil      -385.000mil   180      "MOSFET N-CH 60V 0.38A"            
+R1         Res                  TopLayer 0603                255.000mil    -545.000mil   90       "RES SMD 0 OHM JUMPER 1/10W 0603"  
+R2         Res                  TopLayer 0603                366.024mil    -605.000mil   180      Resistor                           
+R3         Res                  TopLayer 0603                366.024mil    -505.000mil   180      Resistor                           
+R4         Res                  TopLayer 0603                430.000mil    -815.000mil   180      Resistor                           
+R5         Res                  TopLayer 0603                195.000mil    -545.000mil   90       "RES SMD 1M OHM 5% 1/10W 0603"     
+U1         ATTiny814            TopLayer SOIC127P600X175-14N 0.000mil      -725.000mil   0        "IC MCU 8BIT 8KB FLASH 14SOIC"     

@@ -1,0 +1,20 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: CentralUnit_PCB.PcbDoc   2021-05-27  23:14:43
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : CentralUnit_PCB.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      16mil (0.4mm)                                             Round             15        PTH        4.11inch (104.51mm)
+T2      30mil (0.762mm)                                           Round             2         PTH        0.20inch (5.08mm)
+T3      32mil (0.8mm)                                             Round             8         PTH        1.72inch (43.76mm)
+T4      35mil (0.9mm)                                             Round             4         PTH        1.51inch (38.32mm)
+T5      63mil (1.6mm)                                             Round             12        PTH        2.35inch (59.77mm)
+T6      32mil (0.8mm)                                             Round             30        NPTH       3.80inch (96.52mm)
+T7      138mil (3.5mm)                                            Round             4         NPTH       7.76inch (197.10mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              75
+
+Total Processing Time (hh:mm:ss) : 00:00:00
