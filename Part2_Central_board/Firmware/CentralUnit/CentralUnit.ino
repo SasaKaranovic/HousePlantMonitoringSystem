@@ -13,6 +13,9 @@ int WiFi_status = WL_IDLE_STATUS;
 volatile uint32_t nFlowSensorCount = 0;
 volatile uint32_t nFlowSensorCount_last = 0;
 
+char dbgBuff[4024] = {0};
+uint32_t dbgBuffPos = 0;
+
 void IRAM_ATTR ISR_flowSensor() {
     nFlowSensorCount++;
 }
@@ -61,7 +64,20 @@ void setup()
 	setupWebServer();
 	server.begin();
 
-	attachInterrupt(FLOW_SENSOR_PIN, ISR_flowSensor, FALLING);
+	flowInterruptEnabled(true);
+}
+
+
+void flowInterruptEnabled(bool state)
+{
+	if(state)
+	{
+		attachInterrupt(FLOW_SENSOR_PIN, ISR_flowSensor, FALLING);
+	}
+	else
+	{
+		detachInterrupt(FLOW_SENSOR_PIN);
+	}
 }
 
 
@@ -257,5 +273,18 @@ void setupWebServer(void)
 		request->send(200, "text/plain", "OK");
 		return;
 	});
+}
+
+
+void LED_Blink(uint8_t nTimes, uint16_t n_delayPeriod)
+{
+	while(nTimes--)
+	{
+		digitalWrite(LED_PIN, HIGH);
+		delay(n_delayPeriod);
+
+		digitalWrite(LED_PIN, LOW);
+		delay(n_delayPeriod);
+	}
 }
 
