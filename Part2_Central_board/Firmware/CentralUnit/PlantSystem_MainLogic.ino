@@ -161,8 +161,8 @@ void PlantSystem_tick(void)
 		flowInterruptEnabled(true);
 		
 		// - Turn ON pump
+		bWateringError = true;
 		Serial.println("Turning pump ON");
-		delay(200);
 		digitalWrite(WATER_PUMP_EN_PIN, HIGH);
 
 		esp_task_wdt_reset();
@@ -170,31 +170,32 @@ void PlantSystem_tick(void)
 		
 		// Calculate water flow
 		uint32_t nWaterFlow_millis_timestamp = millis();
-		float flowRate = 0.0;
-		unsigned int flowMilliLitres =0;
+		float flowMilliLitres = 0.0;
 		unsigned long totalMilliLitres = 0;
 
+		// Wait until target mL or timeout is reached
 		while(millis() < nTimeout)
 		{
-			if((millis() - nWaterFlow_millis_timestamp) > 1000)    // Only process counters once per second
+			// Calculate mL every second
+			if( millis() >= nWaterFlow_millis_timestamp)
 			{
+				// Disable interrupts
 				flowInterruptEnabled(false);
 
-				nFlowSensorCount_last = nFlowSensorCount;
-				nFlowSensorCount = 0;
-				bWateringError = true;
-				
-
-				flowRate = ((1000.0 / (millis() - nWaterFlow_millis_timestamp)) * nFlowSensorCount_last) / WATERING_FLOW_EDGES_PER_L;
-				flowMilliLitres = (flowRate / 60) * 1000;
+				// Update mL
+				flowMilliLitres = nFlowSensorCount/fImpulsePerML;
 				totalMilliLitres += flowMilliLitres;
 
+				// Check if target has been reached
 				if(totalMilliLitres >= nWatering_volume)
 				{
+					bWateringError = false;
 					break;
 				}
-
-				nWaterFlow_millis_timestamp = millis();
+				
+				// Update for next iteration
+				nWaterFlow_millis_timestamp = millis() + 1000;
+				nFlowSensorCount = 0;
 				esp_task_wdt_reset();
 				flowInterruptEnabled(true);
 			}
@@ -221,7 +222,7 @@ void PlantSystem_tick(void)
 		bWatering_requestPending = false;
 		if(bWateringError)
 		{
-			LED_Blink(3, 250);
+			LED_Blink(4, 250);
 		}
 		else
 		{
