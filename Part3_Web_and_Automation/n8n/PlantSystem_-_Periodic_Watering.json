@@ -1,0 +1,319 @@
+{
+  "name": "Watering System - Periodic Watering",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        460,
+        770
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM `sensor_links` WHERE `solenoidAddress` <> '0' ORDER BY `solenoidAddress` ASC"
+      },
+      "name": "Select Solenoids",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [
+        660,
+        570
+      ],
+      "credentials": {
+        "mySql": "NAS - MySQL"
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "reset": false
+        }
+      },
+      "name": "For Each Solenoid",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        850,
+        570
+      ],
+      "alwaysOutputData": true,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "http://192.168.0.19/waterPlant",
+        "responseFormat": "string",
+        "options": {},
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "address",
+              "value": "={{$json[\"solenoidAddress\"]}}"
+            },
+            {
+              "name": "volume",
+              "value": "={{$json[\"waterVolume\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Water Plant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        570
+      ],
+      "notesInFlow": false,
+      "notes": "Send request to water the plant with 100ml of water"
+    },
+    {
+      "parameters": {
+        "table": "watering_data",
+        "columns": "solenoidAddress, waterVolume",
+        "options": {}
+      },
+      "name": "Update `watering_data`",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        770
+      ],
+      "credentials": {
+        "mySql": "NAS - MySQL"
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const sleepTime = 25000; // in miliseconds\n\nfunction sleep(milliseconds) {\n  return new Promise(\n    resolve => setTimeout(resolve, milliseconds)\n  );\n}\n// Sleep\nawait sleep(sleepTime );\n// Output data\nreturn items;\n"
+      },
+      "name": "Delay",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        570
+      ],
+      "notesInFlow": false,
+      "notes": "Sleep"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [],
+          "boolean": [
+            {
+              "value1": "={{$node[\"For Each Solenoid\"].context[\"noItemsLeft\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "NoOp",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1860,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "waterVolume",
+              "value": 50
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Water Volume",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        570
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1254950103",
+        "text": "=Finished watering the plants!",
+        "additionalFields": {}
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1860,
+        270
+      ],
+      "credentials": {
+        "telegramApi": "Telegram N8N"
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 5
+            },
+            {
+              "hour": 19
+            }
+          ]
+        }
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        460,
+        570
+      ]
+    },
+    {
+      "parameters": {
+        "path": "f7048627-a726-4344-8d49-e7ad19c4415a",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        460,
+        370
+      ],
+      "webhookId": "f7048627-a726-4344-8d49-e7ad19c4415a"
+    }
+  ],
+  "connections": {
+    "Select Solenoids": {
+      "main": [
+        [
+          {
+            "node": "For Each Solenoid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "For Each Solenoid": {
+      "main": [
+        [
+          {
+            "node": "Water Volume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Water Plant": {
+      "main": [
+        [
+          {
+            "node": "Delay",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update `watering_data`",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delay": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "NoOp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "For Each Solenoid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Water Volume": {
+      "main": [
+        [
+          {
+            "node": "Water Plant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Select Solenoids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Select Solenoids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "8"
+}

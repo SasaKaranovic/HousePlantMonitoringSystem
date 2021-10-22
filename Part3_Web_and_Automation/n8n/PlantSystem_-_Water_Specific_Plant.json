@@ -1,0 +1,208 @@
+{
+  "name": "PlantSystem - Water Specific Plant",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        800,
+        750
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://192.168.0.19/waterPlant",
+        "responseFormat": "string",
+        "options": {},
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "address",
+              "value": "={{$json[\"solenoidAddress\"]}}"
+            },
+            {
+              "name": "volume",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"volume\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Water Plant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        550
+      ],
+      "notesInFlow": false,
+      "alwaysOutputData": true,
+      "continueOnFail": true,
+      "notes": "Send request to water the plant with 100ml of water"
+    },
+    {
+      "parameters": {
+        "path": "756fac76-f3d7-4fce-b586-27e114afba46",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        550
+      ],
+      "webhookId": "756fac76-f3d7-4fce-b586-27e114afba46"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * from `sensor_links` where `solenoidAddress` = '{{$json[\"query\"][\"solenoidAddress\"]}}' LIMIT 1"
+      },
+      "name": "MySQL",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        550
+      ],
+      "credentials": {
+        "mySql": "NAS - MySQL"
+      }
+    },
+    {
+      "parameters": {
+        "table": "watering_data",
+        "columns": "=solenoidAddress, waterVolume",
+        "options": {}
+      },
+      "name": "Insert Water Amount",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [
+        1810,
+        450
+      ],
+      "credentials": {
+        "mySql": "NAS - MySQL"
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "items[0].json.waterVolume = $node[\"Webhook\"].json[\"query\"][\"volume\"];\nitems[0].json.solenoidAddress=  $node[\"MySQL\"].json[\"solenoidAddress\"];\nreturn items;\n"
+      },
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1610,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"data\"]}}",
+              "operation": "contains",
+              "value2": "\"result\": OK"
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1254950103",
+        "text": "=Water specific plant failed: Plant #{{$node[\"MySQL\"].json[\"sensorAddress\"]}} - Volume:{{$node[\"Webhook\"].json[\"query\"][\"volume\"]}}ml",
+        "additionalFields": {}
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        650
+      ],
+      "credentials": {
+        "telegramApi": "Telegram N8N"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "MySQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL": {
+      "main": [
+        [
+          {
+            "node": "Water Plant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function": {
+      "main": [
+        [
+          {
+            "node": "Insert Water Amount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Water Plant": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "5"
+}

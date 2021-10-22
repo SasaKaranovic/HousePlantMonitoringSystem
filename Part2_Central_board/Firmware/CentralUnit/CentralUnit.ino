@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include <esp_task_wdt.h>
@@ -7,11 +8,16 @@
 #include "Wire.h"
 
 #define WDT_TIMEOUT		20000
+#define EEPROM_SIZE		4
 
 AsyncWebServer server(80);
 int WiFi_status = WL_IDLE_STATUS; 
 volatile uint32_t nFlowSensorCount = 0;
 volatile uint32_t nFlowSensorCount_last = 0;
+
+char dbgBuff[4024] = {0};
+uint32_t dbgBuffPos = 0;
+float fImpulsePerML = 0;
 
 void IRAM_ATTR ISR_flowSensor() {
     nFlowSensorCount++;
@@ -37,6 +43,21 @@ void setup()
 
 	Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 
+	// EEPROM begin
+	EEPROM.begin(EEPROM_SIZE);
+
+	// Debug EEPROM before read
+	Serial.println("Before read: fImpulsePerML");
+	Serial.println((float)(fImpulsePerML),4);
+	
+	// Read flow value from EEPROM
+	fImpulsePerML = EEPROM.readFloat(0);
+	
+	// Debug EEPROM after read
+	Serial.println("After read: fImpulsePerML");
+	Serial.println((float)(fImpulsePerML),4);
+
+
 	// Configure WDT
 	Serial.println("Configuring WDT...");
 	esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
@@ -61,7 +82,20 @@ void setup()
 	setupWebServer();
 	server.begin();
 
-	attachInterrupt(FLOW_SENSOR_PIN, ISR_flowSensor, FALLING);
+	flowInterruptEnabled(true);
+}
+
+
+void flowInterruptEnabled(bool state)
+{
+	if(state)
+	{
+		attachInterrupt(FLOW_SENSOR_PIN, ISR_flowSensor, FALLING);
+	}
+	else
+	{
+		detachInterrupt(FLOW_SENSOR_PIN);
+	}
 }
 
 
@@ -257,5 +291,48 @@ void setupWebServer(void)
 		request->send(200, "text/plain", "OK");
 		return;
 	});
+
+	// Calibrate flow sensor
+	server.on("/calibrateFlowSensor", HTTP_GET, [] (AsyncWebServerRequest *request) {
+		Serial.println("Calibrate edges per mL");
+
+		if ( request->hasParam("edges") )
+		{
+			String xEdges;
+			float fEdges = 0;
+
+			xEdges = request->getParam("edges")->value();
+			fEdges = xEdges.toFloat();
+
+			// Update value
+			fImpulsePerML = fEdges;
+			EEPROM.writeFloat(0, fEdges);//EEPROM.put(address, param);
+			EEPROM.commit();
+
+			Serial.print("Changing fImpulsePerML to ");
+			Serial.println((float)(fImpulsePerML),4);
+
+			request->send(200, "text/plain", "OK");
+			return;
+		}
+		else
+		{
+			request->send(404, "text/plain", "MISSING_ARGUMENT");
+			return;
+		}
+	});
+}
+
+
+void LED_Blink(uint8_t nTimes, uint16_t n_delayPeriod)
+{
+	while(nTimes--)
+	{
+		digitalWrite(LED_PIN, HIGH);
+		delay(n_delayPeriod);
+
+		digitalWrite(LED_PIN, LOW);
+		delay(n_delayPeriod);
+	}
 }
 

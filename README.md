@@ -22,6 +22,13 @@ Blog page: https://sasakaranovic.com/projects/diy-house-plants-watering-system-p
 Build watering system for house plants. In part two of this video series, we will create a central unit that takes sensor readings and also waters our plants on command.
 
 
-## Part 3: Dashboard
+## Part 3: Automation and Conclusion
 
-TBD
+[![DIY House Plants Watering System - Part 3: Automation and Conclusion](http://i3.ytimg.com/vi/jLdTUMHOhRE/maxresdefault.jpg)](https://youtu.be/jLdTUMHOhRE)
+
+Watch: [DIY House Plants Watering System // Part 2: Automation and Conclusion](https://youtu.be/jLdTUMHOhRE)
+
+Blog page: https://sasakaranovic.com/projects/diy-house-plants-watering-system-part-3-automation/
+
+Build watering system for house plants. In part two of this video series, we will create a central unit that takes sensor readings and also waters our plants on command.
+

@@ -42,7 +42,7 @@ uint8_t gnSolenoidsOnBusCnt = 0;
 // Plant watering definitions
 #define WATERING_VOLUME_MINIMUM		10
 #define WATERING_VOLUME_MAXIMUM		550
-#define WATERING_FLOW_EDGES_PER_ML	4
+#define WATERING_FLOW_EDGES_PER_L	5880	//98
 
 // PlantSystem_tick periods
 #define PERIOD_RESCAN_BUS			24*3600*1000	// Every 24h
@@ -66,6 +66,7 @@ uint32_t nTimeout = 0;
 
 void PlantSystem_tick(void)
 {
+	bool bWateringError = false;
 	esp_task_wdt_reset();
 
 	// -- Rescan I2C bus
@@ -124,15 +125,23 @@ void PlantSystem_tick(void)
 	// -- Process watering request
 	if(bWatering_requestPending || bWatering_inProgress)
 	{
+		//	Watering logic
+		//  Pump creates high pressure inside watering system. Because of this
+		//	at the beginning of watering process we will first, open valve, then turn on pump.
+		//	When we are done, we will first turn off pump and then solenoid.
+		//
+		//	In previous version, water pump was too weak so we turned on the pump first to keep the pressure on
+		//	and prevent water from "backing up" (i.e letting air in from plant side).
+		//	With peristaltic pump we can open the solenoids first and still keep air out of the system.
+		//
+
 		Serial.println("bWatering_requestPending | bWatering_inProgress");
 		// Transition to in progress
 		bWatering_inProgress = true;
 		bWatering_requestPending = false;
+		nFlowSensorCount = 0;
 
-		// Note: Solenoid address and volume must have been validated
-		Serial.println("Turning pump ON");
-		digitalWrite(WATER_PUMP_EN_PIN, HIGH);
-		delay(200);
+		// - Open solenoid
 		Serial.println("Energizing solenoid");
 		if (PlantSystem_SetSolenoidState(nWatering_i2cAddress, true) != true)
 		{
@@ -141,33 +150,84 @@ void PlantSystem_tick(void)
 			digitalWrite(WATER_PUMP_EN_PIN, LOW);
 			Serial.println("Turning pump OFF");
 			Serial.println("Failed to open solenoid. Aborting...");
+			LED_Blink(4, 250);
 			return;
 		}
 
+
+		// - Reset flow counter
+		nFlowSensorCount = 0;
+		nFlowSensorCount_last = 0;
+		flowInterruptEnabled(true);
+		
+		// - Turn ON pump
+		bWateringError = true;
+		Serial.println("Turning pump ON");
+		digitalWrite(WATER_PUMP_EN_PIN, HIGH);
+
 		esp_task_wdt_reset();
-		nTimeout = millis() + 10000;
-		while(nFlowSensorCount < (WATERING_FLOW_EDGES_PER_ML*nWatering_volume))
+		nTimeout = millis() + 10000;	// 10sec time-out for watering
+		
+		// Calculate water flow
+		uint32_t nWaterFlow_millis_timestamp = millis();
+		float flowMilliLitres = 0.0;
+		unsigned long totalMilliLitres = 0;
+
+		// Wait until target mL or timeout is reached
+		while(millis() < nTimeout)
 		{
-			if(millis() > nTimeout)
+			// Calculate mL every second
+			if( millis() >= nWaterFlow_millis_timestamp)
 			{
-				break;
+				// Disable interrupts
+				flowInterruptEnabled(false);
+
+				// Update mL
+				flowMilliLitres = nFlowSensorCount/fImpulsePerML;
+				totalMilliLitres += flowMilliLitres;
+
+				// Check if target has been reached
+				if(totalMilliLitres >= nWatering_volume)
+				{
+					bWateringError = false;
+					break;
+				}
+				
+				// Update for next iteration
+				nWaterFlow_millis_timestamp = millis() + 1000;
+				nFlowSensorCount = 0;
+				esp_task_wdt_reset();
+				flowInterruptEnabled(true);
 			}
 		}
 		esp_task_wdt_reset();
 
-		Serial.println("De-Energizing solenoid");
-		PlantSystem_SetSolenoidState(nWatering_i2cAddress, false);
-		delay(200);
+		// - Turn OFF pump
 		digitalWrite(WATER_PUMP_EN_PIN, LOW);
 		Serial.println("Turning pump OFF");
+		delay(200);
+
+		// - Close solenoid
+		Serial.println("De-Energizing solenoid");
+		PlantSystem_SetSolenoidState(nWatering_i2cAddress, false);
+
 
 		// Store last flow data and prepare for new request
-		nFlowSensorCount_last = nFlowSensorCount;
+		nFlowSensorCount_last = 0;
 		nFlowSensorCount = 0;
+		nWatering_volume = 0;
 
 		// Reset request
 		bWatering_inProgress = false;
 		bWatering_requestPending = false;
+		if(bWateringError)
+		{
+			LED_Blink(4, 250);
+		}
+		else
+		{
+			LED_Blink(2, 500);
+		}
 	}
 
 
@@ -610,10 +670,8 @@ void PlantSystem_RequestPrimeSystem(void)
 
 bool PlantSystem_PrimeSystemWithWater(void)
 {
-	// Turn ON Pump
-	Serial.println("Turning pump ON");
-	digitalWrite(WATER_PUMP_EN_PIN, HIGH);
-	delay(1000);
+
+	bool bSolenoidOpen = false;
 	
 	// Turn ON all solenoids
 	Serial.println("Energizing ALL solenoids");
@@ -623,6 +681,7 @@ bool PlantSystem_PrimeSystemWithWater(void)
 		{
 			Serial.print("Openned solenoid 0x");
 			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
+			bSolenoidOpen = true;
 		}
 		else
 		{
@@ -630,10 +689,24 @@ bool PlantSystem_PrimeSystemWithWater(void)
 			Serial.println(gSolenoidsOnBus[i].i2cAddress, HEX);
 		}
 		delay(500);
+
+		// Only turn on pump AFTER solenoid has oppened
+		if(bSolenoidOpen)
+		{
+			// Turn ON Pump
+			Serial.println("Turning pump ON");
+			digitalWrite(WATER_PUMP_EN_PIN, HIGH);
+			delay(1000);
+		}
 	}
 
 	// Let the water flow for a while
 	delay(5000);
+
+	// Turn OFF pump
+	delay(1000);
+	Serial.println("Turning pump OFF");
+	digitalWrite(WATER_PUMP_EN_PIN, LOW);
 
 	// Turn OFF all solenoids
 	Serial.println("De-energizing ALL solenoids");
@@ -652,11 +725,6 @@ bool PlantSystem_PrimeSystemWithWater(void)
 		delay(500);
 	}
 
-
-	// Turn OFF pump
-	delay(1000);
-	Serial.println("Turning pump OFF");
-	digitalWrite(WATER_PUMP_EN_PIN, LOW);
 
 	nFlowSensorCount = 0;
 	return true;
