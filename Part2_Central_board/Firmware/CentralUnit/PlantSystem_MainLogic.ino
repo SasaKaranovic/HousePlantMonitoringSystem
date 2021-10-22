@@ -1,53 +1,17 @@
-// Plant system note
-// CMD (1byte) + DATATYPE (1byte) + DATALEN (2bytes) 
+#include "CentralUnit_cfg.h"
 
-
-// Typedefs to allow us easier tracking on devices on the bus and storing received data
-typedef struct I2C_Device_TypeDef
-{
-    uint8_t i2cAddress;
-    uint8_t deviceType;
-} I2C_Device_TypeDef; 
-
-typedef struct I2C_Sensor_TypeDef
-{
-    uint8_t i2cAddress;
-    float temperature;
-    uint32_t soilMoisture;
-    uint32_t ambienLight;
-} I2C_Sensor_TypeDef;
-
-typedef struct I2C_Solenoid_TypeDef
-{
-    uint8_t i2cAddress;
-    uint8_t lastState;
-} I2C_Solenoid_TypeDef;
 
 // Every device that we saw on the bus
-I2C_Device_TypeDef gDevicesOnBus[250] = { {.i2cAddress=0, .deviceType=0} };
+I2C_Device_TypeDef gDevicesOnBus[I2C_MAX_DEVICES_ON_BUS] = { {.i2cAddress=0, .deviceType=0} };
 uint8_t gDevicesOnBusCount = 0;
 
 // All sensors that are registered on the bus
-I2C_Sensor_TypeDef gSensorsOnBus[20] = { {.i2cAddress=0, .temperature=0.0, .soilMoisture=0, .ambienLight=0} };
+I2C_Sensor_TypeDef gSensorsOnBus[I2C_MAX_SENSORS_ON_BUS] = { {.i2cAddress=0, .temperature=0.0, .soilMoisture=0, .ambienLight=0} };
 uint8_t gnSensorsOnBusCnt = 0;
 
 // All solenoids that are on the bus
-I2C_Solenoid_TypeDef gSolenoidsOnBus[20] = { {.i2cAddress=0, .lastState=0} };
+I2C_Solenoid_TypeDef gSolenoidsOnBus[I2C_MAX_SOLENOIDS_ON_BUS] = { {.i2cAddress=0, .lastState=0} };
 uint8_t gnSolenoidsOnBusCnt = 0;
-
-// I2C bus config
-#define I2C_ADDRESS_LIMIT_LOWER		0x08
-#define I2C_ADDRESS_LIMIT_UPPER		0x7F
-
-// Plant watering definitions
-#define WATERING_VOLUME_MINIMUM		10
-#define WATERING_VOLUME_MAXIMUM		550
-#define WATERING_FLOW_EDGES_PER_L	5880	//98
-
-// PlantSystem_tick periods
-#define PERIOD_RESCAN_BUS			24*3600*1000	// Every 24h
-#define PERIOD_RELOAD_SENSORS		15*1000			// Every 5sec
-#define PERIOD_FLOW_RATE			2*1000			// Every 2sec
 
 // PlantSystem_tick global variables
 uint32_t nPeriod_Rescanbus=0;
@@ -59,6 +23,7 @@ bool bPrimeSystem_requestPending=false;
 bool bWatering_requestPending=false;
 bool bWatering_inProgress=false;
 bool bCloseValvesOnPowerUp=false;
+bool bI2CBusScanned=false;
 uint32_t nWatering_volume=0;
 uint8_t nWatering_i2cAddress=0;
 uint32_t nTimeout = 0;
@@ -69,16 +34,25 @@ void PlantSystem_tick(void)
 	bool bWateringError = false;
 	esp_task_wdt_reset();
 
-	// -- Rescan I2C bus
-	if(nPeriod_Rescanbus <= millis())
+	// -- Initial I2C scan
+	if(bI2CBusScanned == false)
 	{
 		esp_task_wdt_reset();
 		PlantSystem_ScanBus();
-		#if 1
 		PlantSystem_debugShowDevicesOnBus();
-		#endif
+		bI2CBusScanned = true;
+	}
+
+	// -- I2C periodic rescan
+	#if (I2C_BUS_RESCAN_ENABLED != 0)
+	if(nPeriod_Rescanbus  <= millis())
+	{
+		esp_task_wdt_reset();
+		PlantSystem_ScanBus();
+		PlantSystem_debugShowDevicesOnBus();
 		nPeriod_Rescanbus = millis() + PERIOD_RESCAN_BUS;
 	}
+	#endif
 
 	// -- Reload sensor data
 	if(nPeriod_ReloadSensors <= millis())
@@ -112,13 +86,13 @@ void PlantSystem_tick(void)
 		bCloseValvesOnPowerUp = true;
 	}
 
-	#if 0
+	#if (FLOW_RATE_DEBUG_ENABLED != 0)
 	// -- Flow sensor debug
 	if(nPeriod_FlowRate <= millis())
 	{
 		Serial.print("nFlowSensorCount: ");
 		Serial.println(nFlowSensorCount, DEC);
-		nPeriod_FlowRate = millis() + PERIOD_FLOW_RATE;
+		nPeriod_FlowRate = millis() + PERIOD_FLOW_RATE_DEBUG;
 	}
 	#endif
 
@@ -150,14 +124,15 @@ void PlantSystem_tick(void)
 			digitalWrite(WATER_PUMP_EN_PIN, LOW);
 			Serial.println("Turning pump OFF");
 			Serial.println("Failed to open solenoid. Aborting...");
+			esp_log_write(ESP_LOG_ERROR, "SKWS", "-- Failed to open solenoid 0x%02X. Aborting...\n", nWatering_i2cAddress);
 			LED_Blink(4, 250);
 			return;
 		}
 
 
+		delay(2000);
 		// - Reset flow counter
 		nFlowSensorCount = 0;
-		nFlowSensorCount_last = 0;
 		flowInterruptEnabled(true);
 		
 		// - Turn ON pump
@@ -166,12 +141,12 @@ void PlantSystem_tick(void)
 		digitalWrite(WATER_PUMP_EN_PIN, HIGH);
 
 		esp_task_wdt_reset();
-		nTimeout = millis() + 10000;	// 10sec time-out for watering
+		nTimeout = millis() + 20000;	// 20sec time-out for watering
 		
 		// Calculate water flow
 		uint32_t nWaterFlow_millis_timestamp = millis();
 		float flowMilliLitres = 0.0;
-		unsigned long totalMilliLitres = 0;
+		uint32_t totalMilliLitres = 0;
 
 		// Wait until target mL or timeout is reached
 		while(millis() < nTimeout)
@@ -183,6 +158,12 @@ void PlantSystem_tick(void)
 				flowInterruptEnabled(false);
 
 				// Update mL
+				if(fImpulsePerML <= 0)
+				{
+					Serial.println("Invalid fImpulsePerML value! Please calibrate flow sensor!");
+					esp_log_write(ESP_LOG_ERROR, "SKWS", "-- Invalid fImpulsePerML value (fImpulsePerML=%f)! Please calibrate flow sensor!\n", fImpulsePerML);
+					fImpulsePerML = 100;
+				}
 				flowMilliLitres = nFlowSensorCount/fImpulsePerML;
 				totalMilliLitres += flowMilliLitres;
 
@@ -213,7 +194,10 @@ void PlantSystem_tick(void)
 
 
 		// Store last flow data and prepare for new request
-		nFlowSensorCount_last = 0;
+
+
+
+		nFlowSensorCount_last = nFlowSensorCount;
 		nFlowSensorCount = 0;
 		nWatering_volume = 0;
 
@@ -243,7 +227,18 @@ void PlantSystem_tick(void)
 
 void PlantSystem_ScanBus(void)
 {
+	// Clear/reset data from previous scan
+	esp_log_write(ESP_LOG_DEBUG, "SKWS", "-- Resetting internal I2C bus state.\n");
+	Serial.println ("Resetting internal I2C bus state.");
+	gDevicesOnBusCount = 0;
+	gnSensorsOnBusCnt = 0;
+	gnSolenoidsOnBusCnt = 0;
+	memset(gDevicesOnBus, 0 , sizeof(gDevicesOnBus));
+	memset(gSensorsOnBus, 0 , sizeof(gSensorsOnBus));
+	memset(gSolenoidsOnBus, 0 , sizeof(gSolenoidsOnBus));
+
 	Serial.println ("Scanning I2C bus...");
+	esp_log_write(ESP_LOG_DEBUG, "SKWS", "-- Resetting internal I2C bus state.\n");
 	for (uint8_t i=I2C_ADDRESS_LIMIT_LOWER; i<I2C_ADDRESS_LIMIT_UPPER; i++)
 	{
 		Wire.beginTransmission (i);          // Begin I2C transmission Address (i)
@@ -252,9 +247,11 @@ void PlantSystem_ScanBus(void)
 			gDevicesOnBus[gDevicesOnBusCount++].i2cAddress = i;
 			// gDevicesOnBusCount++;
 		}
+		esp_task_wdt_reset();
 	}
 	esp_task_wdt_reset();
-	Serial.print ("Found ");      
+	esp_log_write(ESP_LOG_INFO, "SKWS", "-- I2C bus rescan found %d devices.\n", gDevicesOnBusCount);
+	Serial.print ("Found ");
 	Serial.print (gDevicesOnBusCount, DEC);        // numbers of devices
 	Serial.println (" device(s).");
 
@@ -269,12 +266,11 @@ void PlantSystem_ScanBus(void)
 
 void PlantSystem_debugShowDevicesOnBus(void)
 {
-	uint8_t count = 0;
-
 	// -- Print all devices
 	Serial.print ("There are total of ");
 	Serial.print (gDevicesOnBusCount, DEC);        // numbers of devices
-	Serial.println (" device(s) on I2C bus.");
+	Serial.println (" device(s) on I2C bus.");	
+
 
 	for (uint8_t i = 0; i< gDevicesOnBusCount; i++)
 	{
@@ -303,6 +299,7 @@ void PlantSystem_debugShowDevicesOnBus(void)
 	Serial.print ("There are total of ");
 	Serial.print (gnSensorsOnBusCnt, DEC);        // numbers of devices
 	Serial.println (" SENSORS on I2C bus.");
+	esp_log_write(ESP_LOG_INFO, "SKWS", "-- Reporting %d sensors and %d solenoids\n", gnSensorsOnBusCnt, gnSolenoidsOnBusCnt);
 	for (uint8_t i = 0; i< gnSensorsOnBusCnt; i++)
 	{
 		Serial.print("Sensor @ 0x");

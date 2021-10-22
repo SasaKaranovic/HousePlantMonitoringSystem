@@ -1,10 +1,12 @@
-extern I2C_Device_TypeDef gDevicesOnBus[250];
+#include "CentralUnit_cfg.h"
+
+extern I2C_Device_TypeDef gDevicesOnBus[I2C_MAX_DEVICES_ON_BUS];
 extern uint8_t gDevicesOnBusCount;
 
-extern I2C_Sensor_TypeDef gSensorsOnBus[20];
+extern I2C_Sensor_TypeDef gSensorsOnBus[I2C_MAX_SENSORS_ON_BUS];
 extern uint8_t gnSensorsOnBusCnt;
 
-extern I2C_Solenoid_TypeDef gSolenoidsOnBus[20];
+extern I2C_Solenoid_TypeDef gSolenoidsOnBus[I2C_MAX_SOLENOIDS_ON_BUS];
 extern uint8_t gnSolenoidsOnBusCnt;
 
 // -- Format char buffer to return data as JSON object
@@ -34,6 +36,7 @@ bool PlantSystem_WAPI_GetDevices(char *pBuff, uint32_t nMaxLen)
 																gDevicesOnBusCount);
 	if(len<0)
 	{
+		esp_log_write(ESP_LOG_ERROR, "SKWS", "-- PlantSystem_WAPI_GetDevices: Buffer too short (e:%d)\n", len);
 		Serial.println("Buffer too short");
 		return false;
 	}
@@ -68,6 +71,7 @@ bool PlantSystem_WAPI_GetDevices(char *pBuff, uint32_t nMaxLen)
 		}
 		else
 		{
+			esp_log_write(ESP_LOG_ERROR, "SKWS", "-- PlantSystem_WAPI_GetDevices: Len issue (e:%d)\n", len);
 			Serial.println("Len issue");
 			Serial.println(len, DEC);
 			return false;
@@ -77,7 +81,7 @@ bool PlantSystem_WAPI_GetDevices(char *pBuff, uint32_t nMaxLen)
 	// Close JSON string
 	len = snprintf(&pBuff[currentPos-1], (nMaxLen-currentPos), "]}");
 
-	if(len >0 && currentPos <nMaxLen)
+	if(len>0 && currentPos<nMaxLen)
 	{
 		#if 0
 		Serial.println("Printing pBuff");
@@ -87,6 +91,7 @@ bool PlantSystem_WAPI_GetDevices(char *pBuff, uint32_t nMaxLen)
 	}
 	else
 	{
+		esp_log_write(ESP_LOG_ERROR, "SKWS", "-- (len>0 && currentPos<nMaxLen) fail (%d >0 && %d<%d)\n", len, currentPos, nMaxLen);
 		return false;
 	}
 }
@@ -116,6 +121,7 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 																gnSensorsOnBusCnt);
 	if(len<0)
 	{
+		esp_log_write(ESP_LOG_ERROR, "SKWS", "-- PlantSystem_WAPI_SensorData: Buffer too short (e:%d)\n", len);
 		Serial.println("Buffer too short");
 		return false;
 	}
@@ -162,10 +168,12 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 		Serial.println(len, DEC);		
 
 		Serial.print("nMaxLen: ");
-		Serial.println(len, DEC);
+		Serial.println(nMaxLen, DEC);
 
 		Serial.print("currentPos :");
-		Serial.println(len, DEC);
+		Serial.println(currentPos, DEC);
+
+		esp_log_write(ESP_LOG_ERROR, "SKWS", "-- PlantSystem_WAPI_SensorData: Buffer too short. snprintf ret:%d, nMaxLen:%d currentPos:%d\n", len, nMaxLen, currentPos);
 		return false;
 	}
 
@@ -179,6 +187,7 @@ bool PlantSystem_WAPI_SensorData(char *pBuff, uint32_t nMaxLen)
 	}
 	else
 	{
+		esp_log_write(ESP_LOG_ERROR, "SKWS", "-- PlantSystem_WAPI_SensorData fail (len:%d)\n", len);
 		return false;
 	}
 }
