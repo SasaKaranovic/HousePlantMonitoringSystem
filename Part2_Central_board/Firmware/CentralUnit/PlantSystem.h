@@ -3,6 +3,20 @@
 
 #include <stdbool.h>
 
+#ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+#if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+#include "esp32/rom/rtc.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/rtc.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/rtc.h"
+#else 
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
+#else // ESP32 Before IDF 4.0
+#include "rom/rtc.h"
+#endif
+
 // CMD (1byte) + DATATYPE (1byte) + DATALEN (2bytes) 
 #define PLANTSYSTEM_MIN_HEADER_LENGHT	4
 
